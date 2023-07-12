@@ -9,7 +9,8 @@ function App() {
   );
   const [stringInput, setStringInput] = useState("");
   const [userQuery, setUserQuery] = useState("");
-
+  const [matchedString, setMatchedString] = useState<any>(null);
+  
   const getStringMatcher = async (event: any) => {
     event.preventDefault();
     const response = await fetch("http://localhost:3000/match", {
@@ -18,47 +19,16 @@ function App() {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        value: userQuery,
+        query: userQuery,
+        value: stringInput,
       }),
     }).then((res) => res.json());
     setListofPossibleCombination(response);
+    const filteredMatchedString = response.filter(
+      (string: any) => userQuery === string.value
+    );
+    setMatchedString(filteredMatchedString);
   };
-
-  const getMatchingPortion = (combination:any) => {
-  if (combination && combination.value) {
-    const queryIndex = combination.value.indexOf(userQuery);
-    if (queryIndex > -1) {
-      const matchingText = userQuery;
-      const startIndex = queryIndex;
-      const endIndex = queryIndex + userQuery.length - 1;
-      const prefix = combination.value.substring(0, startIndex);
-      const suffix = combination.value.substring(endIndex + 1);
-
-      return {
-        matchingText,
-        startIndex,
-        endIndex,
-        prefix,
-        suffix,
-      };
-    }
-  }
-  return {
-    matchingText: "",
-    startIndex: -1,
-    endIndex: -1,
-    prefix: "",
-    suffix: "",
-  };
-};
-
-
-  const filteredCombinations = listOfPossibleCombination.filter(
-    (combination) => {
-      const { matchingText } = getMatchingPortion(combination);
-      return matchingText !== "";
-    }
-  );
 
   return (
     <>
@@ -92,18 +62,15 @@ function App() {
 
         <button type="submit">Submit</button>
         <div>
-          {filteredCombinations.map((combination: any, index) => {
-            const { matchingText, startIndex, endIndex } =
-              getMatchingPortion(combination);
+          {matchedString?.map((filter:any,index:number) => {
             return (
               <p key={index}>
-                Result {index + 1}: {combination.value}
-                {startIndex > -1 && (
-                  <span>
-                    {" "}
-                    (Query found at index {startIndex} to {endIndex})
-                  </span>
-                )}
+                Result : {userQuery}{" "}
+                <span>
+                  {" "}
+                  (Query found at {filter?.starts} to{" "}
+                  {filter?.ends})
+                </span>
               </p>
             );
           })}
